@@ -34,7 +34,7 @@ $(document).ready(function() {
 	perspective mode, computing the vanishing points.
 	
 */
-function focalL(pr,pts,u0,v0){
+function focalL(pts, u0, v0){
 	
 	// compute lines (2D) of rectangle
 	var lrect1 = pts[0].cross(pts[1]);
@@ -64,12 +64,12 @@ function focalL(pr,pts,u0,v0){
 }
 
 // Even row of dlt matrix by a single point
-function DLTEvenRow(pt,u){
+function DLTEvenRow(pt, u){
 	return [pt.x, pt.y, 1, 0, 0, 0, -u*pt.x, -u*pt.y, -u]
 }
 
 // Odd row of dlt matrix by a single point
-function DLTOddRow(pt,v){
+function DLTOddRow(pt, v){
 	return [0, 0, 0, pt.x, pt.y, 1, -v*pt.x, -v*pt.y, -v];
 }
 
@@ -78,13 +78,13 @@ function DLTOddRow(pt,v){
 		- pts are points of Image, over same plane
 					z = 0
  */
-function HomographyFrom4Pts(pts,u,v){
+function HomographyFrom4Pts(pts, u, v){
 	
 	// DLT Matrix
 	var A = new Array(); 
 	for(var i=0; i<pts.length; i++){
-		A[2*i] = DLTEvenRow(pts[i],u);
-		A[2*i+1] = DLTOddRow(pts[i],v);
+		A[2*i] = DLTEvenRow(pts[i], u);
+		A[2*i+1] = DLTOddRow(pts[i], v);
 	}
 	
 	// Homography are the solution of Ah=0
@@ -105,7 +105,7 @@ function HomographyFrom4Pts(pts,u,v){
 		
 		var d = h[8];
 		
-		return [ [h[0]/d,h[1]/d,h[2]/d],[h[3]/d,h[4]/d,h[5]/d],[h[6]/d,h[7]/d,1]  ];
+		return [ [h[0]/d, h[1]/d, h[2]/d], [h[3]/d, h[4]/d, h[5]/d], [h[6]/d, h[7]/d, 1] ];
 	
 	}else{
 	
@@ -117,16 +117,16 @@ function HomographyFrom4Pts(pts,u,v){
 }
 
 
-function ProjectionM(pr,pts,sz){
+function ProjectionM(pts, sz){
 	
 	// compute internal parameters
 	var u0 = sz.w/2;
 	var v0 = sz.h/2;
-	var f = focalL(pr,pts,u0,v0); // focal length
+	var f = focalL(pts, u0, v0); // focal length
 	
 	if(f > 0){
 		// compute homography
-		var H = HomographyFrom4Pts(pts,u0,v0);
+		var H = HomographyFrom4Pts(pts, u0, v0);
 		
 		// compute scale
 		var Kinv = [ [1/f, 0, -u0/f]
@@ -136,8 +136,8 @@ function ProjectionM(pr,pts,sz){
 		var P = numeric.toArray(numeric.dot(Kinv,H));   //   P  =   +-   Lambda * ( r1  r2  t )   :=  (  shi1 shi2 shi3  )
 		var shi1 = [ P[0][0], P[1][0], P[2][0] ];
 		var shi2 = [ P[0][1], P[1][1], P[2][1] ];
-		var L1 = numeric.toArray(numeric.norm2( shi1 ));
-		var L2 = numeric.toArray(numeric.norm2( shi2 ));
+		var L1 = numeric.toArray(numeric.norm2(shi1));
+		var L2 = numeric.toArray(numeric.norm2(shi2));
 		var sc = L1/L2;
 		
 		// Rotation matrix
@@ -154,9 +154,9 @@ function ProjectionM(pr,pts,sz){
 		var K = [ [f, 0, u0], [0, f, v0], [0, 0, 1]];
 		
 		var Rt = [
-					[r1[0],r2[0],r3[0],t[0]],
-					[r1[1],r2[1],r3[1],t[1]],
-					[r1[2],r2[2],r3[2],t[2]]
+					[r1[0], r2[0], r3[0], t[0]],
+					[r1[1], r2[1], r3[1], t[1]],
+					[r1[2], r2[2], r3[2], t[2]]
 				];
 		
 		var P2 = numeric.toArray(numeric.dot(K,Rt));
@@ -169,13 +169,40 @@ function ProjectionM(pr,pts,sz){
 	}
 }
 
-function drawPoint(pr,pt){
+
+
+function drawPoint(pr, pt){
 	pr.ellipse(pt.x, pt.y, 5, 5);
 }
 
-function drawLine(pr,pt1,pt2){
-	pr.line(pt1.x,pt1.y,pt2.x,pt2.y);
+function drawLine(pr, pt1, pt2){
+	pr.line(pt1.x, pt1.y, pt2.x, pt2.y);
 }
+
+// draw Cube
+function drawCube(P, pr){
+	
+	var p13D = [0, 0, 1, 1];
+	var p23D = [0, 1, 1, 1];
+	var p33D = [1, 1, 1, 1];
+	var p43D = [1, 0, 1, 1];
+	
+	var i1 = numeric.toArray(numeric.dot(P, p13D));
+	var i2 = numeric.toArray(numeric.dot(P, p23D));
+	var i3 = numeric.toArray(numeric.dot(P, p33D));
+	var i4 = numeric.toArray(numeric.dot(P, p43D));
+	
+	var p1 = new pr.PVector( i1[0]/i1[2], i1[1]/i1[2] );
+	var p2 = new pr.PVector( i2[0]/i2[2], i2[1]/i2[2] );
+	var p3 = new pr.PVector( i3[0]/i3[2], i3[1]/i3[2] );
+	var p4 = new pr.PVector( i4[0]/i4[2], i4[1]/i4[2] );
+	
+	drawLine(pr, p1, p2);
+	drawLine(pr, p2, p3);
+	drawLine(pr, p3, p4);
+	drawLine(pr, p4, p1);
+}
+
 
 // Simple way to attach js code to the canvas is by using a function  
 function sketchProc(pr) {  
@@ -189,13 +216,13 @@ function sketchProc(pr) {
 		fPts[i] = new pr.PVector(0,0,1);
 	}
 	
-	//var fPts = [{x:0,y:0,w:1},{x:0,y:0,w:1},{x:0,y:0,w:1},{x:0,y:0,w:1}];
-	
 	// Selected current point
 	var selPt = -1;
 	
 	// flag for initialize process
 	var initProc = false;
+	
+	//var fPts = [{x:0,y:0,w:1},{x:0,y:0,w:1},{x:0,y:0,w:1},{x:0,y:0,w:1}];
 	
 	// Background Image preload
 	pr.setup = function(){
@@ -203,6 +230,9 @@ function sketchProc(pr) {
 		img = pr.loadImage("Images/t1.jpg");
 		// aquí no carga img.width ni img.height
 	}
+	
+	// Projection matrix
+	var P;
 	
 	// 60 frames per second by default
 	pr.draw = function() {
@@ -213,13 +243,13 @@ function sketchProc(pr) {
 			// Drawing First 4 Points from fPts[]
 			for( var i = 0; i<fPts.length; i++){
 				if( selPt >= i ){
-					drawPoint(pr,fPts[i]);
+					drawPoint(pr, fPts[i]);
 					if( i >= 1 ){
 						if(i<fPts.length){
-							drawLine(pr,fPts[i],fPts[i-1]);
+							drawLine(pr, fPts[i], fPts[i-1]);
 						}
 						if( i === fPts.length-1){
-							drawLine(pr,fPts[i],fPts[0]);
+							drawLine(pr, fPts[i], fPts[0]);
 						}
 					}
 				}
@@ -231,36 +261,16 @@ function sketchProc(pr) {
 			// Defining a condition to init the process
 			var conditionProcessInit = selPt === fPts.length-1;
 			
-			// Process, after finding 4 points
+			// Get Projection matrix, after finding 4 points
 			if ( conditionProcessInit && initProc === false){
 				initProc = true;
 				
 				// Get Projection Matrix
-				var P = ProjectionM(pr,fPts, {w: img.width, h:img.height});
-				
-				// draw Cube
-				var p13D = [0,0,1,1];
-				var p23D = [0,1,1,1];
-				var p33D = [1,1,1,1];
-				var p43D = [1,0,1,1];
-				
-				var i1 = numeric.toArray(numeric.dot(P,p13D));
-				var i2 = numeric.toArray(numeric.dot(P,p23D));
-				var i3 = numeric.toArray(numeric.dot(P,p33D));
-				var i4 = numeric.toArray(numeric.dot(P,p43D));
-				
-				var p1 = new pr.PVector( i1[0]/i1[2], i1[1]/i1[2] );
-				var p2 = new pr.PVector( i2[0]/i2[2], i2[1]/i2[2] );
-				var p3 = new pr.PVector( i3[0]/i3[2], i3[1]/i3[2] );
-				var p4 = new pr.PVector( i4[0]/i4[2], i4[1]/i4[2] );
-				
-				
-				drawLine(pr,p1,p2);
-				drawLine(pr,p2,p3);
-				drawLine(pr,p3,p4);
-				drawLine(pr,p4,p1);
-				
-				
+				P = ProjectionM(fPts, {w: img.width, h:img.height});
+			}
+			
+			if(initProc === true){
+				drawCube(P, pr);
 			}
 		}catch(e){
 			alert(e.toString());
