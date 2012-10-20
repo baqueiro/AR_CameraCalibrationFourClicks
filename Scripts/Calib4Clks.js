@@ -116,7 +116,18 @@ function HomographyFrom4Pts(pts, u, v){
 	
 }
 
+// Compute inverse matrix of internal parameters
+function InternalMatrixInverse(f, tau, u0, v0) {
+    var _f = 1.0 / f ;
+	var _ftau = 1.0 / (f*tau) ;
 
+	return [ [_f, 0.0, -u0*_f]
+			,[0.0, _ftau, -v0*_ftau]
+			,[0.0, 0.0, 1.0]
+		   ];
+}
+
+// Compute projection Matrix
 function ProjectionM(pts, sz){
 	
 	// compute internal parameters
@@ -129,25 +140,28 @@ function ProjectionM(pts, sz){
 		var H = HomographyFrom4Pts(pts, u0, v0);
 		
 		// compute scale
-		var Kinv = [ [1/f, 0, -u0/f]
-					,[0, 1/f, -v0/f]
-					,[0, 0, 1]
-				   ];
+		var Kinv = InternalMatrixInverse(f, 1.0, u0, v0);
 		var P = numeric.toArray(numeric.dot(Kinv,H));   //   P  =   +-   Lambda * ( r1  r2  t )   :=  (  shi1 shi2 shi3  )
+		
 		var shi1 = [ P[0][0], P[1][0], P[2][0] ];
 		var shi2 = [ P[0][1], P[1][1], P[2][1] ];
+		
+		// version 1
 		var L1 = numeric.toArray(numeric.norm2(shi1));
 		var L2 = numeric.toArray(numeric.norm2(shi2));
-		var sc = L1/L2;
+		var sc = L1/L2; // TODO: devolver esta escala
 		
 		// Rotation matrix
 		var r1 = numeric.toArray(numeric.div(shi1,L1));
-		var r2 = numeric.toArray(numeric.div(shi2,L1)); // L1!
+		var r2 = numeric.toArray(numeric.div(shi2,L1)); // Sí, usamos L1! y no L2
 		var r3 = [
 					r1[1]*r2[2]-r1[2]*r2[1],
 					r1[2]*r2[0]-r1[0]*r2[2],
 					r1[0]*r2[2]-r1[2]*r2[0]
 				 ];
+				 
+				 
+				 
 		
 		var t = [ P[0][2]/L1, P[1][2]/L1, P[2][2]/L1 ];
 		
