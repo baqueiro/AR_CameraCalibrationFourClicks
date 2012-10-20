@@ -92,6 +92,7 @@ function HomographyFrom4Pts(pts, u, v){
 	// or else, the singular vector with the smallest singular value of A (applying SVD to A)   (2)
 
 	// but, I don't find an SVD program in javascript, then I use (1) to find homography for now
+	// UPDATE: numeric-1.2.3 have svd :)
 	
 	var At = numeric.transpose(A);
 	var AtA = numeric.dot(At,A);
