@@ -47,8 +47,7 @@ function focalL(pts, u0, v0){
 	var vsh2 = lrect2.cross(lrect4);
 	
 	if( vsh1.z === 0 || vsh2.z === 0){
-		// The rectangle aren't in perspective position
-		return 0;
+		throw("The rectangle isn't in a perspective position");
 	}else{
 		vsh1.div(vsh1.z);
 		vsh2.div(vsh2.z);
@@ -59,7 +58,7 @@ function focalL(pts, u0, v0){
 	if( aux >= 0 ){
 		return Math.sqrt( aux );
 	}else{
-		return -1;
+		throw "[internal] Focal length must be positive";
 	}
 }
 
@@ -96,6 +95,25 @@ function HomographyFrom4Pts(pts, u, v){
 	
 	var At = numeric.transpose(A);
 	var AtA = numeric.dot(At,A);
+	var USV = numeric.svd(AtA);
+	var d = USV.V[8][8];
+	return [ [USV.V[0][8]/d, USV.V[1][8]/d, USV.V[2][8]/d], [USV.V[3][8]/d, USV.V[4][8]/d, USV.V[5][8]/d], [USV.V[6][8]/d, USV.V[7][8]/d, 1] ];
+	
+	
+	
+	
+	/*
+	var Usmaller = USV.U[8]; // TODO: this is wrong!
+	
+	var d = Usmaller[8];
+	
+	return [ [Usmaller[0]/d, Usmaller[1]/d, Usmaller[2]/d], [Usmaller[3]/d, Usmaller[4]/d, Usmaller[5]/d], [Usmaller[6]/d, Usmaller[7]/d, 1] ];
+	
+	
+	*/
+	
+	
+	/*
 	var eig = numeric.eig(AtA); // d, v
 	
 	var idxInf = numeric.toArray(eig.d).indexOf(numeric.toArray(numeric.inf(eig.d)));
@@ -111,7 +129,7 @@ function HomographyFrom4Pts(pts, u, v){
 	}else{
 	
 		alert("TODO: lo hallaremos de otra forma");
-	}	
+	}	*/
 	
 	//numeric.toArray(numeric.transpose(A));
 	
@@ -136,34 +154,32 @@ function ProjectionM(pts, sz){
 	var v0 = sz.h/2;
 	var f = focalL(pts, u0, v0); // focal length
 	
-	if(f > 0){
+	try
+	{
 		// compute homography
 		var H = HomographyFrom4Pts(pts, u0, v0);
 		
 		// compute scale
 		var Kinv = InternalMatrixInverse(f, 1.0, u0, v0);
-		var P = numeric.toArray(numeric.dot(Kinv,H));   //   P  =   +-   Lambda * ( r1  r2  t )   :=  (  shi1 shi2 shi3  )
+		var P = numeric.dot(Kinv,H);   //   P  =   +-   Lambda * ( r1  r2  t )   :=  (  shi1 shi2 shi3  )
 		
 		var shi1 = [ P[0][0], P[1][0], P[2][0] ];
 		var shi2 = [ P[0][1], P[1][1], P[2][1] ];
 		
 		// version 1
-		var L1 = numeric.toArray(numeric.norm2(shi1));
-		var L2 = numeric.toArray(numeric.norm2(shi2));
+		var L1 = numeric.norm2(shi1);
+		var L2 = numeric.norm2(shi2);
 		var sc = L1/L2; // TODO: devolver esta escala
 		
 		// Rotation matrix
-		var r1 = numeric.toArray(numeric.div(shi1,L1));
-		var r2 = numeric.toArray(numeric.div(shi2,L1)); // Sí, usamos L1! y no L2
+		var r1 = numeric.div(shi1,L1);
+		var r2 = numeric.div(shi2,L1); // Sí, usamos L1! y no L2
 		var r3 = [
 					r1[1]*r2[2]-r1[2]*r2[1],
 					r1[2]*r2[0]-r1[0]*r2[2],
 					r1[0]*r2[2]-r1[2]*r2[0]
 				 ];
 				 
-				 
-				 
-		
 		var t = [ P[0][2]/L1, P[1][2]/L1, P[2][2]/L1 ];
 		
 		var K = [ [f, 0, u0], [0, f, v0], [0, 0, 1]];
@@ -174,16 +190,15 @@ function ProjectionM(pts, sz){
 					[r1[2], r2[2], r3[2], t[2]]
 				];
 		
-		var P2 = numeric.toArray(numeric.dot(K,Rt));
+		var P2 = numeric.dot(K,Rt);
 		
 		return P2;
 		
-	}else{
-		alert("Recarga y Elige otros puntos. Error: " + f.ToString());
+	}catch(e) {
+		alert("Error: " + e);
 		return [];
 	}
 }
-
 
 
 function drawPoint(pr, pt){
@@ -195,17 +210,17 @@ function drawLine(pr, pt1, pt2){
 }
 
 // draw Cube
-function drawCube(P, pr){
+function drawCube(P, pr, fPts){
 	
 	var p13D = [0, 0, 1, 1];
 	var p23D = [0, 1, 1, 1];
 	var p33D = [1, 1, 1, 1];
 	var p43D = [1, 0, 1, 1];
 	
-	var i1 = numeric.toArray(numeric.dot(P, p13D));
-	var i2 = numeric.toArray(numeric.dot(P, p23D));
-	var i3 = numeric.toArray(numeric.dot(P, p33D));
-	var i4 = numeric.toArray(numeric.dot(P, p43D));
+	var i1 = numeric.dot(P, p13D);
+	var i2 = numeric.dot(P, p23D);
+	var i3 = numeric.dot(P, p33D);
+	var i4 = numeric.dot(P, p43D);
 	
 	var p1 = new pr.PVector( i1[0]/i1[2], i1[1]/i1[2] );
 	var p2 = new pr.PVector( i2[0]/i2[2], i2[1]/i2[2] );
@@ -216,6 +231,13 @@ function drawCube(P, pr){
 	drawLine(pr, p2, p3);
 	drawLine(pr, p3, p4);
 	drawLine(pr, p4, p1);
+	
+	drawLine(pr, fPts[0], p1);
+	drawLine(pr, fPts[1], p2);
+	drawLine(pr, fPts[2], p3);
+	drawLine(pr, fPts[3], p4);
+	
+	
 }
 
 
@@ -285,7 +307,7 @@ function sketchProc(pr) {
 			}
 			
 			if(initProc === true){
-				drawCube(P, pr);
+				drawCube(P, pr, fPts);
 			}
 		}catch(e){
 			alert(e.toString());
