@@ -185,7 +185,7 @@ function drawCube(P, pr, fPts){
 
 // Simple way to attach js code to the canvas is by using a function  
 function sketchProc(pr) {  
-	
+
 	// Background Image
 	var img;
 	
@@ -252,7 +252,7 @@ function sketchProc(pr) {
 			alert(e.toString());
 		}
 	};
-    
+	
 	pr.mouseReleased = function() {
 		if(selPt < fPts.length-1){
 			selPt++;
@@ -265,7 +265,7 @@ function sketchProc(pr) {
 		}
 	};
 }  
-  
+
 var canvas = document.getElementById("canvas1");  
 // attaching the sketchProc function to the canvas  
 var p = new Processing(canvas, sketchProc);  
