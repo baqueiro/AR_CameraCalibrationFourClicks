@@ -18,7 +18,6 @@ $(document).ready(function() {
 });
 
 
-
 /*
 	Compute focal length from 4 points
 	Assuming:
@@ -58,18 +57,8 @@ function focalL(pts, u0, v0){
 	if( aux >= 0 ){
 		return Math.sqrt( aux );
 	}else{
-		throw "[internal] Focal length must be positive";
+		throw "[internal] Sqrt of Focal length must be positive";
 	}
-}
-
-// Even row of dlt matrix by a single point
-function DLTEvenRow(pt, u){
-	return [pt.x, pt.y, 1, 0, 0, 0, -u*pt.x, -u*pt.y, -u]
-}
-
-// Odd row of dlt matrix by a single point
-function DLTOddRow(pt, v){
-	return [0, 0, 0, pt.x, pt.y, 1, -v*pt.x, -v*pt.y, -v];
 }
 
 /**
@@ -79,60 +68,28 @@ function DLTOddRow(pt, v){
  */
 function HomographyFrom4Pts(pts, u, v){
 	
-	// DLT Matrix
+	// DLT Matrix (http://en.wikipedia.org/wiki/Direct_linear_transformation) from camera to 3D cube scene
 	var A = new Array(); 
-	for(var i=0; i<pts.length; i++){
-		A[2*i] = DLTEvenRow(pts[i], u);
-		A[2*i+1] = DLTOddRow(pts[i], v);
-	}
+	
+	A[0] = [0, 0, 1, 0, 0, 0, 0, 0, -pts[0].x];
+	A[1] = [0, 0, 0, 0, 0, 1, 0, 0, -pts[0].y];
+	A[2] = [0, 1, 1, 0, 0, 0, 0, -pts[1].x, -pts[1].x];
+	A[3] = [0, 0, 0, 0, 1, 1, 0, -pts[1].y, -pts[1].y];
+	A[4] = [1, 1, 1, 0, 0, 0, -pts[2].x, -pts[2].x, -pts[2].x];
+	A[5] = [0, 0, 0, 1, 1, 1, -pts[2].y, -pts[2].y, -pts[2].y];
+	A[6] = [1, 0, 1, 0, 0, 0, -pts[3].x, 0, -pts[3].x];
+	A[7] = [0, 0, 0, 1, 0, 1, -pts[3].y, 0, -pts[3].y];
 	
 	// Homography are the solution of Ah=0
     // i.e., the eigenvector with the smallest eigenvalue of (A^t)*(A)   (1)
 	// or else, the singular vector with the smallest singular value of A (applying SVD to A)   (2)
 
-	// but, I don't find an SVD program in javascript, then I use (1) to find homography for now
-	// UPDATE: numeric-1.2.3 have svd :)
-	
 	var At = numeric.transpose(A);
 	var AtA = numeric.dot(At,A);
 	var USV = numeric.svd(AtA);
+	
 	var d = USV.V[8][8];
 	return [ [USV.V[0][8]/d, USV.V[1][8]/d, USV.V[2][8]/d], [USV.V[3][8]/d, USV.V[4][8]/d, USV.V[5][8]/d], [USV.V[6][8]/d, USV.V[7][8]/d, 1] ];
-	
-	
-	
-	
-	/*
-	var Usmaller = USV.U[8]; // TODO: this is wrong!
-	
-	var d = Usmaller[8];
-	
-	return [ [Usmaller[0]/d, Usmaller[1]/d, Usmaller[2]/d], [Usmaller[3]/d, Usmaller[4]/d, Usmaller[5]/d], [Usmaller[6]/d, Usmaller[7]/d, 1] ];
-	
-	
-	*/
-	
-	
-	/*
-	var eig = numeric.eig(AtA); // d, v
-	
-	var idxInf = numeric.toArray(eig.d).indexOf(numeric.toArray(numeric.inf(eig.d)));
-	
-	if(idxInf !== -1){
-		
-		var h = numeric.toArray(eig.v)[idxInf];
-		
-		var d = h[8];
-		
-		return [ [h[0]/d, h[1]/d, h[2]/d], [h[3]/d, h[4]/d, h[5]/d], [h[6]/d, h[7]/d, 1] ];
-	
-	}else{
-	
-		alert("TODO: lo hallaremos de otra forma");
-	}	*/
-	
-	//numeric.toArray(numeric.transpose(A));
-	
 }
 
 // Compute inverse matrix of internal parameters
@@ -150,8 +107,8 @@ function InternalMatrixInverse(f, tau, u0, v0) {
 function ProjectionM(pts, sz){
 	
 	// compute internal parameters
-	var u0 = sz.w/2;
-	var v0 = sz.h/2;
+	var u0 = sz.w * 0.5;
+	var v0 = sz.h * 0.5;
 	var f = focalL(pts, u0, v0); // focal length
 	
 	try
@@ -236,10 +193,7 @@ function drawCube(P, pr, fPts){
 	drawLine(pr, fPts[1], p2);
 	drawLine(pr, fPts[2], p3);
 	drawLine(pr, fPts[3], p4);
-	
-	
 }
-
 
 // Simple way to attach js code to the canvas is by using a function  
 function sketchProc(pr) {  
@@ -259,13 +213,9 @@ function sketchProc(pr) {
 	// flag for initialize process
 	var initProc = false;
 	
-	//var fPts = [{x:0,y:0,w:1},{x:0,y:0,w:1},{x:0,y:0,w:1},{x:0,y:0,w:1}];
-	
 	// Background Image preload
 	pr.setup = function(){
-		pr.size(800, 600); // TODO: redimensionar bien a la imagen
-		img = pr.loadImage("Images/t1.jpg");
-		// aquí no carga img.width ni img.height
+		img = pr.loadImage("Images/t4.bmp");
 	}
 	
 	// Projection matrix
@@ -274,6 +224,7 @@ function sketchProc(pr) {
 	// 60 frames per second by default
 	pr.draw = function() {
 		try{
+			pr.size(img.width, img.height);
 			// draw background image
 			pr.image(img, 0, 0);
 			
@@ -314,7 +265,6 @@ function sketchProc(pr) {
 		}
 	};
     
-	
 	pr.mouseReleased = function() {
 		if(selPt < fPts.length-1){
 			selPt++;
