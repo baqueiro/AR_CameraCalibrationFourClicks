@@ -1,17 +1,5 @@
 /**
- *  Guillermo Baqueiro, baqueiro@cimat.mx
- */
-
-
-/**
- * En este programa mostraré un proyecto tecnológico que hice en el CIMAT (www.cimat.mx). Voy a hacerlo esta vez en javascript
- * Divido el proyecto en los siguientes pasos:
- * -Funcionalidad para recuperar la posición de 4 puntos de un rectángulo en la escena
- *      1) Primera forma, directo de 4 clicks
- *      2) Segunda forma, usando un algoritmo de detección de puntos (que debo programar al parecer)
- *      3) tercera forma, transformada de hough para detectar las líneas que definen ese rectángulo (forma robusta)
- * -Hacer algoritmo para recuperar los parámetros de la cámara
- * -Dibujar algo en la escena
+ *  Guillermo Baqueiro, baqueiro@gmail.com
  */
 
 $(document).ready(function() {
@@ -215,7 +203,7 @@ function sketchProc(pr) {
 	
 	// Background Image preload
 	pr.setup = function(){
-		img = pr.loadImage("Images/t4.bmp");
+		img = pr.loadImage("Images/t3.JPG");
 	}
 	
 	// Projection matrix
