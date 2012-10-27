@@ -172,6 +172,9 @@ function drawCube(P, pr, fPts){
 	var p3 = new pr.PVector( i3[0]/i3[2], i3[1]/i3[2] );
 	var p4 = new pr.PVector( i4[0]/i4[2], i4[1]/i4[2] );
 	
+	pr.triangle(fPts[0].x, fPts[0].y, fPts[1].x, fPts[1].y, (p1.x + fPts[0].x)*0.5, (p1.y + fPts[0].y)*0.5);
+	//pr.triangle(fPts[0].x, fPts[0].y, fPts[3].x, fPts[3].y, (p1.x + fPts[0].x)*0.5, (p1.y + fPts[0].y)*0.5);
+	
 	drawLine(pr, p1, p2);
 	drawLine(pr, p2, p3);
 	drawLine(pr, p3, p4);
@@ -182,6 +185,9 @@ function drawCube(P, pr, fPts){
 	drawLine(pr, fPts[2], p3);
 	drawLine(pr, fPts[3], p4);
 }
+
+var mousePressed = false;
+var currPoint;
 
 // Simple way to attach js code to the canvas is by using a function  
 function sketchProc(pr) {  
@@ -262,6 +268,24 @@ function sketchProc(pr) {
 					fPts[i].y = pr.mouseY;
 				}
 			}
+		}
+	};
+	
+	pr.mousePressed = function () {
+		if(initProc === true){
+			mousePressed = true;
+			currPoint = new pr.PVector(0,0,1);
+			currPoint.x = pr.mouseX;
+			currPoint.y = pr.mouseY;
+			// TODO: seleccionar punto mas cercano de los cuatro, dárselo, y dibujárselo
+		}
+	}
+	
+	pr.mouseDragged = function () {
+		if(mousePressed === true){
+			currPoint.x = pr.mouseX;
+			currPoint.y = pr.mouseY;
+		
 		}
 	};
 }  
