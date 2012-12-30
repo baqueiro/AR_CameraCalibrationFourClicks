@@ -1,7 +1,7 @@
 
 If you can draw a beauty cube using 4 points, you get the focal length Ü.
 
-Need html5 canvas! ( ._.)
+In html5 canvas Ü
 
 Works in 
 -Google Chrome v22.0.1229.94 m +

@@ -148,7 +148,8 @@ function drawLine(pr, pt1, pt2) {
 
 // draw Cube
 function drawCube(P, pr, fPts) {
-
+	
+	// Coordinates in 3d scene: pi3D, i in {1, 2, 3, 4}
 	var p13D = [0, 0, 1, 1];
 	var p23D = [0, 1, 1, 1];
 	var p33D = [1, 1, 1, 1];
@@ -158,7 +159,9 @@ function drawCube(P, pr, fPts) {
 	var i2 = numeric.dot(P, p23D);
 	var i3 = numeric.dot(P, p33D);
 	var i4 = numeric.dot(P, p43D);
-
+	
+	
+	// pi, i in {1, 2, 3, 4} are points in image coordinates
 	var p1 = new pr.PVector(i1[0] / i1[2], i1[1] / i1[2]);
 	var p2 = new pr.PVector(i2[0] / i2[2], i2[1] / i2[2]);
 	var p3 = new pr.PVector(i3[0] / i3[2], i3[1] / i3[2]);
@@ -204,6 +207,9 @@ function minDistance(pts, pt) {
 
 var mousePressed = false;
 var idxMin = 0;
+var draw3DObject = false;
+
+var once = false;
 
 // Simple way to attach js code to the canvas is by using a function
 function sketchProc(pr) {
@@ -232,6 +238,7 @@ function sketchProc(pr) {
 
 	// 60 frames per second by default
 	pr.draw = function() {
+	
 		try {
 			pr.size(img.width, img.height);
 			// draw background image
@@ -270,6 +277,32 @@ function sketchProc(pr) {
 
 			if (initProc === true) {
 				drawCube(P, pr, fPts);
+
+				if(draw3DObject === true){
+					
+					if(once === false){
+						pr.printMatrix();
+						
+						pr.size(img.width, img.height, pr.P3D);
+						// mmm... not print 3d matrix
+						pr.printMatrix();
+						once = true;
+					}
+					
+					
+					
+					/*
+					// Set rotation angles
+					var ct = pr.cos(pr.PI/9.0);
+					var st = pr.sin(pr.PI/9.0);          
+					// Matrix for rotation around the Y axis
+					pr.applyMatrix(  ct, 0.0,  st,  0.0,
+					0.0, 1.0, 0.0,  0.0,
+					-st, 0.0,  ct,  0.0,
+					0.0, 0.0, 0.0,  1.0); 
+					*/
+					
+				}
 			}
 		} catch(e) {
 			alert(e.toString());
@@ -315,6 +348,8 @@ function sketchProc(pr) {
 			});
 		}
 	};
+	
+	
 }
 
 var canvas = document.getElementById("canvas1");
@@ -322,3 +357,9 @@ var canvas = document.getElementById("canvas1");
 var p = new Processing(canvas, sketchProc);
 // p.exit(); to detach it
 
+
+$("#clickDraw").click(function(){
+	if($.isNumeric( $('#localLength').val() )){
+		draw3DObject = true;
+	}
+});
