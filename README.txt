@@ -9,5 +9,7 @@ Works in
 -IE v9.0.8112.16421 +
 
 
+Unit test with jasmine http://pivotal.github.com/jasmine/ opening SpecRunner.html :)
+
 Guillermo
 
