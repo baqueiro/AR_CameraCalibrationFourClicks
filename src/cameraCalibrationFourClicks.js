@@ -51,10 +51,9 @@ function focalL(pts, u0, v0) {
 
 /**
  *  Assuming:
- * - pts are points of Image, over same plane
- * z = 0 
+ * - pts are points of Image, over same plane z = 0 
  */
-function HomographyFrom4Pts(pts, u, v) {
+function HomographyFrom4Pts(pts) {
 
 	// DLT Matrix (http://en.wikipedia.org/wiki/Direct_linear_transformation) from camera to 3D cube scene
 	var A = new Array();
@@ -106,7 +105,7 @@ function ProjectionM(pts, sz) {
 
 	try {
 		// compute homography
-		var H = HomographyFrom4Pts(pts, u0, v0);
+		var H = HomographyFrom4Pts(pts);
 
 		// compute scale
 		var Kinv = InternalMatrixInverse(f, 1.0, u0, v0);
