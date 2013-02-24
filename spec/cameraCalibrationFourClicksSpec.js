@@ -112,3 +112,34 @@ describe("Inverse matrix calculation", function() {
 	});
 	
 });
+
+describe("Compute Projection Matrix", function(){
+	var projM;
+	
+	var writer = {};
+	
+	writer.WriteFocalLength = function(f){
+		// do nothing
+	};
+	
+	beforeEach(function(){
+		var fPts = new Array(4);
+		
+		var p = new Processing();
+		
+		fPts[0] = new p.PVector(242, 347, 1);
+		fPts[1] = new p.PVector(371, 362, 1);
+		fPts[2] = new p.PVector(335, 475, 1);
+		fPts[3] = new p.PVector(198, 454, 1);
+		projM = ComputeProjectionMatrix(fPts, {w : 774, h : 515}, writer);
+	});
+	
+	it("Projection Matrix of (242, 347, 1), (371, 362, 1), (335, 475, 1), (198, 454, 1) should be not null or empty", function(){
+		expect(projM).not.toBeNull();
+		expect(projM).not.toEqual([]);
+	});
+	
+	it("Projection Matrix must be [ [ -492.32683487778934, 973.9061678325367, 56.27094087519731, 2066.3866870560973 ], [ 646.2485204971101, 3.5796965837877934, -559.0201972994353, 2962.959423263592 ], [ -0.5889907304568586, -0.3439285163280871, 0.7142786242979087, 8.538787963351814 ] ]", function(){
+		expect(projM).toEqual([ [ -492.32683487778934, 973.9061678325367, 56.27094087519731, 2066.3866870560973 ], [ 646.2485204971101, 3.5796965837877934, -559.0201972994353, 2962.959423263592 ], [ -0.5889907304568586, -0.3439285163280871, 0.7142786242979087, 8.538787963351814 ] ]);
+	});
+});

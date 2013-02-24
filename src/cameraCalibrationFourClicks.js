@@ -94,14 +94,14 @@ function InternalMatrixInverse(f, tau, u0, v0) {
  * @param {Object} pts
  * @param {Object} sz
  */
-function ProjectionM(pts, sz) {
+function ComputeProjectionMatrix(pts, sz, fcnWriter) {
 
 	// compute internal parameters
 	var u0 = sz.w * 0.5;
 	var v0 = sz.h * 0.5;
 	var f = focalL(pts, u0, v0);
 	// focal length
-	$("#focalLength").val(f.toString());
+	fcnWriter.WriteFocalLength(f);
 
 	try {
 		// compute homography
@@ -212,6 +212,16 @@ function minDistance(pts, pt) {
 	return k;
 }
 
+/**
+ *  for external writer
+ */
+var writer = {};
+
+writer.WriteFocalLength = function(f){
+	$("#focalLength").val(f.toString());
+};
+
+
 var mousePressed = false;
 var idxMin = 0;
 
@@ -272,10 +282,10 @@ function sketchProc(pr) {
 				initProc = true;
 
 				// Get Projection Matrix
-				P = ProjectionM(fPts, {
+				P = ComputeProjectionMatrix(fPts, {
 					w : img.width,
 					h : img.height
-				});
+				}, writer);
 			}
 
 			if (initProc === true) {
@@ -320,10 +330,10 @@ function sketchProc(pr) {
 			fPts[idxMin].y = pr.mouseY;
 
 			// Re-compute Projection Matrix
-			P = ProjectionM(fPts, {
+			P = ComputeProjectionMatrix(fPts, {
 				w : img.width,
 				h : img.height
-			});
+			}, writer);
 		}
 	};
 	
