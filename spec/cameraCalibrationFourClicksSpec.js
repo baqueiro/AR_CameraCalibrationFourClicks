@@ -106,7 +106,6 @@ describe("Inverse matrix calculation", function() {
 		expect(invMatrix).not.toBeNull();
 	});
 	
-	
 	it("InternalMatrixInverse of (100, 1, 100, 100) should be equal to [ [ 0.01, 0, -1 ], [ 0, 0.01, -1 ], [ 0, 0, 1 ] ] ", function(){
 		expect(invMatrix).toEqual([ [ 0.01, 0, -1 ], [ 0, 0.01, -1 ], [ 0, 0, 1 ] ] );
 	});
@@ -142,4 +141,55 @@ describe("Compute Projection Matrix", function(){
 	it("Projection Matrix must be [ [ -492.32683487778934, 973.9061678325367, 56.27094087519731, 2066.3866870560973 ], [ 646.2485204971101, 3.5796965837877934, -559.0201972994353, 2962.959423263592 ], [ -0.5889907304568586, -0.3439285163280871, 0.7142786242979087, 8.538787963351814 ] ]", function(){
 		expect(projM).toEqual([ [ -492.32683487778934, 973.9061678325367, 56.27094087519731, 2066.3866870560973 ], [ 646.2485204971101, 3.5796965837877934, -559.0201972994353, 2962.959423263592 ], [ -0.5889907304568586, -0.3439285163280871, 0.7142786242979087, 8.538787963351814 ] ]);
 	});
+});
+
+describe("Distance as Metric", function(){
+	var d;
+	var p1 = {x : Math.random(), y : Math.random()};
+	var p2 = {x : Math.random(), y : Math.random()};
+	var p3 = {x : Math.random(), y : Math.random()};
+	var d12 = Distance(p1, p2);
+	var d13 = Distance(p1, p3);
+	var d23 = Distance(p2, p3);
+	
+	it("Distance is positive between two different points", function(){
+		expect(d13 >= 0).toEqual(true);
+		expect(d12 >= 0).toEqual(true);
+		expect(d23 >= 0).toEqual(true);
+	});
+	
+	it("Is the same in either direction", function(){
+		expect( d13 === Distance(p3, p1) ).toEqual(true);
+		expect( d23 === Distance(p3, p2) ).toEqual(true);
+		expect( d12 === Distance(p2, p1) ).toEqual(true);
+	});
+	
+	it("Triangle inequality", function(){
+		expect( d13 <= d12 + d23 ).toEqual(true);
+		expect( d23 <= d12 + d13 ).toEqual(true);
+		expect( d12 <= d13 + d23 ).toEqual(true);
+	});
+});
+
+describe("Min distance of a set of points", function(){
+	
+	var m;
+	beforeEach(function(){
+		
+		var fPts = new Array(4);
+		var p = new Processing();
+		
+		fPts[0] = new p.PVector(242, 347, 1);
+		fPts[1] = new p.PVector(371, 362, 1);
+		fPts[2] = new p.PVector(335, 475, 1);
+		fPts[3] = new p.PVector(198, 454, 1);
+		
+		m = minDistance(fPts,{x:216,y:453});
+	});
+	
+	it("Min distance point from set (242, 347, 1), (371, 362, 1), (335, 475, 1), (198, 454, 1) to (216,453) is the point three, i.e. (335, 475, 1)", function(){
+		expect(m).not.toBeNull();
+		expect(m).toEqual(3);
+	});
+		
 });
